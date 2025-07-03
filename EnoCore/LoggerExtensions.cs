@@ -7,7 +7,7 @@ public static class LoggerExtensions
         return logger.BeginScope(new Dictionary<string, object>
         {
             [nameof(CheckerTask)] = checkerTask,
-        });
+        })!;
     }
 
     public static IDisposable BeginEnoScope(this ILogger logger, long roundId)
@@ -17,7 +17,7 @@ public static class LoggerExtensions
             {
                 "round", roundId
             },
-        });
+        })!;
     }
 
     public static IDisposable BeginEnoScope(this ILogger logger, CheckerTaskMessage checkerTaskMessage)
@@ -25,6 +25,6 @@ public static class LoggerExtensions
         return logger.BeginScope(new Dictionary<string, object>
         {
             [nameof(CheckerTaskMessage)] = checkerTaskMessage,
-        });
+        })!;
     }
 }

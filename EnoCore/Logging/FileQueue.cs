@@ -11,9 +11,8 @@
     {
         private readonly ConcurrentQueue<string> queue = new ConcurrentQueue<string>();
         private readonly CancellationToken cancelToken;
-
-        private StreamWriter writer = default!;
         private readonly string filename;
+        private StreamWriter writer = default!;
         private FileSystemWatcher watcher;
         private volatile bool reopenRequested;
 
@@ -22,17 +21,17 @@
             this.filename = filename;
             this.cancelToken = cancelToken;
 
-            OpenWriter();
+            this.OpenWriter();
 
             var dir = Path.GetDirectoryName(filename)!;
             var name = Path.GetFileName(filename);
-            watcher = new FileSystemWatcher(dir, name)
+            this.watcher = new FileSystemWatcher(dir, name)
             {
-                NotifyFilter = NotifyFilters.FileName | NotifyFilters.CreationTime
+                NotifyFilter = NotifyFilters.FileName | NotifyFilters.CreationTime,
             };
-            watcher.Created += (s, e) => reopenRequested = true;
-            watcher.Renamed += (s, e) => reopenRequested = true;
-            watcher.EnableRaisingEvents = true;
+            this.watcher.Created += (s, e) => this.reopenRequested = true;
+            this.watcher.Renamed += (s, e) => this.reopenRequested = true;
+            this.watcher.EnableRaisingEvents = true;
             this.cancelToken = cancelToken;
             Task.Run(this.WriterTask, cancelToken);
         }
@@ -40,8 +39,8 @@
         public void Dispose()
         {
             this.writer.Dispose();
-            watcher?.Dispose();
-            writer?.Dispose();
+            this.watcher?.Dispose();
+            this.writer?.Dispose();
         }
 
         public void Enqueue(string data)
@@ -52,17 +51,17 @@
 
         private void OpenWriter()
         {
-            writer?.Dispose();
+            this.writer?.Dispose();
             var fs = new FileStream(
-                filename,
+                this.filename,
                 FileMode.Append,
                 FileAccess.Write,
                 FileShare.ReadWrite | FileShare.Delete,
                 bufferSize: 4096,
                 FileOptions.Asynchronous);
-            writer = new StreamWriter(fs, Encoding.UTF8)
+            this.writer = new StreamWriter(fs, Encoding.UTF8)
             {
-                AutoFlush = true
+                AutoFlush = true,
             };
         }
 
@@ -71,11 +70,12 @@
             int i = 0;
             while (!this.cancelToken.IsCancellationRequested)
             {
-                if (reopenRequested)
+                if (this.reopenRequested)
                 {
-                    OpenWriter();
-                    reopenRequested = false;
+                    this.OpenWriter();
+                    this.reopenRequested = false;
                 }
+
                 try
                 {
                     if (this.queue.TryDequeue(out var data))

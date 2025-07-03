@@ -57,6 +57,7 @@
         }
 
         public IDisposable BeginScope<TState>(TState state)
+            where TState : notnull
         {
             return this.provider.ScopeProvider!.Push(state);
         }
